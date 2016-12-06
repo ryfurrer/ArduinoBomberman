@@ -1,0 +1,34 @@
+Tim Tran
+Ryan Furrer
+CMPUT 274 EA1
+
+Project: ArduinoBomberman
+
+Accessories:
+* LCD screen
+* Arduino Mega Board
+* Arduino JoyStick
+
+Wiring Instructions:
+LCD GND <---> BB GND bus
+LCD VCC <---> BB positive bus
+LCD RESET <---> Arduino Pin 8
+LCD D/C <---> Arduino Pin 7
+LCD CARD_CD <---> Arduino pin 5
+LCD TFT_CS <---> Arduino Pin 6
+LCD MOSI <---> Arduino Pin 51
+LCD SCK <---> Arduino Pin 52
+LCD MISO <---> Arduino Pin 50
+LCD LITE <---> BB Positive Bus
+
+Joystick VCC <---> BB Positive Bus
+Joystick VERT <---> Arduino Pin A0
+Joystick HOR <---> Arduino Pin A1
+Joystick SEL <---> Arduino Pin 9
+Joystick GND <---> BB GND Bus
+
+BB Positive Bus <---> Arduino 5V
+BB GND Bus <---> Arduino GND
+
+Run instructions:
+It is to be compiled and uploaded from command line by typing "make upload".

@@ -10,5 +10,6 @@ bool touchingAnyEnemy(enemy theEnemies[15], uint8_t playerX, uint8_t playerY, ui
 void createEnemies(enemy theEnemies[15], uint8_t numEn, uint8_t map[20][16]);
 void killAllEnemies(enemy theEnemies[15], uint8_t numEn);
 void killEnemies(enemy theEnemies[15], uint8_t total, uint8_t x, uint8_t y, uint8_t* numEn, uint8_t explo_size);
+void showPoints();
 
 #endif

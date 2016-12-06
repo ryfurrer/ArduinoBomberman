@@ -20,7 +20,7 @@
 #define JOY_VERT_ANALOG 0
 #define JOY_HORIZ_ANALOG 1
 
-#define JOY_DEADZONE 64 // Only care about joystick movement if
+#define JOY_DEADZONE 128 // Only care about joystick movement if
 // position is JOY_CENTRE +/- JOY_DEADZONE
 #define JOY_CENTRE 512
 #define MILLIS_PER_FRAME 120
@@ -35,6 +35,11 @@
 const uint8_t maxBombCount = 5;
 const int explodeTime = 1000; // how long it takes for bombs to explode in ms (tweak later)
 const uint8_t explosionDuration = 250; // how long an explosion lasts for
+
+// For point calculations
+unsigned long startTime = 0;
+unsigned long totalPoints = 0;
+unsigned long enemiesKilled = 0;
 
 // bombs
 struct bomb{
@@ -93,30 +98,40 @@ void changeHighlightedItem();
 void gameEnded();
 bool explodePlayer(int playerPosX, int playerPosY, int explosionPosX, int explosionPosY);
 void checkPowerUps();
+void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime);
 
 // General functions
 
-void updateBombs() {      //confusing to look at
+
+void updateBombs() {
   unsigned long currentTime;
 
   for (int i = 0; i < maxBombCount; i++) {
     currentTime = millis();
+    // check if the bombs are not exploding
     if (activeBombs[i].active && !(activeBombs[i].exploding)) {
+      // check if the bombs are going to explode
       if ((currentTime - activeBombs[i].time) > explodeTime) {
         Serial.print("Bomb "); Serial.print(i); Serial.println(" exploding.");
         Serial.print("currentTime: "); Serial.println(currentTime);
         Serial.print("Bomb set at time "); Serial.println(activeBombs[i].time);
         Serial.print("time difference: "); Serial.println(currentTime - activeBombs[i].time);
+        // explode the bomb at its current position
         bombExplode(activeBombs[i].x, activeBombs[i].y);
+        // set the bomb's condition to exploding, and store its time of Explosion
         activeBombs[i].exploding = true;
         activeBombs[i].timeOfExplosion = millis();
       }
+      // if not going to explode, draw the bomb at that location
       else {
         drawBomb(&tft, activeBombs[i].x, activeBombs[i].y);
       }
     }
+    // if the bomb is exploding
     else if (activeBombs[i].exploding) {
+      // check if it should still be exploding
       if ((currentTime - activeBombs[i].timeOfExplosion) > explosionDuration) {
+        // if the explosion duration is over, destroy surrounding trees
         activeBombs[i].exploding = false;
         activeBombs[i].active = false;
         removeTrees(map1, activeBombs[i].x, activeBombs[i].y, explo_size);
@@ -276,6 +291,7 @@ int main() {
   // One loop = one frame
   while (true) {
     if (state == start) {
+      tft.fillScreen(BLACK);
       tft.setTextColor(ST7735_BLACK, WHITE);    //Show tile scren
       printStartItem(&tft, 0);
       tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
@@ -295,12 +311,18 @@ int main() {
         if (digitalRead(JOY_SEL) == 0 && selection == 1) {
           state = htp;
         }
-
       }
     }
-    else if (state == htp)//TODO:MAKE THIS
+    else if (state == htp)
     {
-      state = start;
+      printInstructions(&tft);
+      while (state == htp) {
+        if (digitalRead(JOY_SEL) == 0) {
+          state = start;
+          selection = 0;
+          oldSelection = 0;
+        }
+      }
     }
     else if (state == init_game)
     {
@@ -308,27 +330,29 @@ int main() {
       playerPosX = 0;
       bombCount = 0;
       isAlive = true;
-      // init_map(map1);
-      if (level == newLevel) {
+
+      if (level == newLevel) {//change map design increase enemies
         if (maxEnemies < 13) {
-          maxEnemies += 4;
+          maxEnemies += 3;
         }
 
         init_map(map1);
         addGridOfBlocks(map1,2, 2);
         addTrees(trees,map1);
-      } else {
-        maxEnemies = 5;
+      } else {                //reset trees, max enemies, and player
+        maxEnemies = 6;
         explo_size = 1;
         resetTrees(trees,map1);
         level = newLevel;
       }
+
       numEn = maxEnemies;
       loadMap(&tft, map1);
       Serial.println("Map loaded");
       createEnemies(theEnemies, maxEnemies, map1);
       drawEnemy(theEnemies, maxEnemies, &tft);
       updatePlayer();
+      startTime = millis();
       state = game;
     }
     else if (state == game)
@@ -348,7 +372,11 @@ int main() {
 
       if (!isAlive) {
         gameEnded();
-        printDeath(&tft);
+        enemiesKilled = maxEnemies-numEn;
+        calculatePoints(enemiesKilled, millis() - startTime);
+        printDeath(&tft, totalPoints);
+        Serial.println(totalPoints);
+        totalPoints = 0;
         level = retry;
         state = end;
         continue;
@@ -357,6 +385,7 @@ int main() {
       if (numEn == 0) {
         gameEnded();
         printWin(&tft);
+        calculatePoints(maxEnemies, millis() - startTime);
         level = newLevel;
         state = end;
         continue;
@@ -419,4 +448,13 @@ void menuScroll(int vert) {
       changeHighlightedItem();
     }
     delay(150); // Delay so that you don't scroll too fast
+}
+
+// Point calculation: enemies killed * 200 / time to clear level (seconds)
+void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime) {
+  Serial.print("Previous points: "); Serial.println(totalPoints);
+  Serial.print("enemiesKilled: "); Serial.println(enemiesKilled);
+  Serial.print("clearTime: "); Serial.println(clearTime);
+  totalPoints += ((unsigned long) enemiesKilled * 200 * 1000) / clearTime;
+  Serial.print("Total Points: "); Serial.println(totalPoints);
 }

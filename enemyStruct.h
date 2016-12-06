@@ -6,6 +6,8 @@ struct enemy {
   uint8_t y;
   uint8_t dir;
   unsigned long timeOfLastMove;
+  unsigned long timeToNextMove;
+  uint8_t spacesToMove;
   bool active;
   enemy();
   void setXY(uint8_t x, uint8_t y);

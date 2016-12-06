@@ -29,11 +29,12 @@
 
 const uint8_t PIN = 13;// for reading voltage for getRandom
 
+extern Adafruit_ST7735 tft;
 
 //TFT specific setup
-void setupTFT(Adafruit_ST7735 *tft) {
-  (*tft).initR(INITR_BLACKTAB);   // initialize a ST7735R chip, black tab
-  (*tft).fillScreen(BLACK);
+void setupTFT() {
+  tft.initR(INITR_BLACKTAB);   // initialize a ST7735R chip, black tab
+  tft.fillScreen(BLACK);
 }
 
 //More random but has delay
@@ -51,7 +52,7 @@ uint8_t getRandom(uint8_t max){
       key = key + (b);
     }
 
-    delay(80);//5*80=400ms
+    delay(80);//6*80=480ms
   }
 
   rand_num = (key*100) / modifier;
@@ -63,65 +64,65 @@ uint8_t getRandom(uint8_t max){
 }
 
 //Print title and options of the start screen
-void printStartItem(Adafruit_ST7735 *tft, uint8_t i) {
+void printStartItem(uint8_t i) {
   if (i==0) {
-    (*tft).setCursor(29, 10*8);
-    (*tft).print("Play Game!");
+    tft.setCursor(29, 10*8);
+    tft.print("Play Game!");
   } else if (i==1) {
-    (*tft).setCursor(24, 11*8);
-    (*tft).print("Instructions");
+    tft.setCursor(24, 11*8);
+    tft.print("Instructions");
   } else {
-    (*tft).setTextSize(2);
-    (*tft).setCursor(8, 8);
-    (*tft).print("Bomberman!");
-    (*tft).setTextSize(1);
+    tft.setTextSize(2);
+    tft.setCursor(8, 8);
+    tft.print("Bomberman!");
+    tft.setTextSize(1);
   }
 }
 
-void printInstructions(Adafruit_ST7735 *tft) {
-    (*tft).fillScreen(BLACK);
-    (*tft).setTextColor(WHITE, BLACK);
-    (*tft).setCursor(29, 1*8);
-    (*tft).print("How to play:");
-    (*tft).setCursor(0, 3*8);
-    (*tft).print("Use the joystick to move.");
-    (*tft).setCursor(0, 5*8);
-    (*tft).print("Press the joystick to lay a bomb!");
-    (*tft).setCursor(0, 7*8);
-    (*tft).print("Bombs can destroy trees and enemies.");
-    (*tft).setCursor(0, 9*8);
-    (*tft).print("Some trees may contain powerups.");
-    (*tft).setCursor(0, 11*8);
-    (*tft).print("Destroy all the enemies to win!");
-    (*tft).setCursor(0, 17*8);
-    (*tft).print("Press select to return to start menu.");
+void printInstructions() {
+    tft.fillScreen(BLACK);
+    tft.setTextColor(WHITE, BLACK);
+    tft.setCursor(29, 1*8);
+    tft.print("How to play:");
+    tft.setCursor(0, 3*8);
+    tft.print("Use the joystick to move.");
+    tft.setCursor(0, 5*8);
+    tft.print("Press the joystick to lay a bomb!");
+    tft.setCursor(0, 7*8);
+    tft.print("Bombs can destroy trees and enemies.");
+    tft.setCursor(0, 9*8);
+    tft.print("Some trees may contain powerups.");
+    tft.setCursor(0, 11*8);
+    tft.print("Destroy all the enemies to win!");
+    tft.setCursor(0, 17*8);
+    tft.print("Press select to return to start menu.");
 }
 
 //Prints the message to player informing them of their death
-void printDeath(Adafruit_ST7735 *tft, unsigned long points) {
-  (*tft).setCursor(0,10*8);
-  (*tft).setTextSize(1);
-  (*tft).setTextColor(ST7735_WHITE, ST7735_BLACK);
-  (*tft).setTextSize(2);
-  (*tft).print("YOU DIED");
-  (*tft).setCursor(0, 12*8);
-  (*tft).setTextSize(1);
-  (*tft).print("Your points: ");
-  (*tft).setCursor(9*8, 12*8);
-  (*tft).print(points);
-  (*tft).setCursor(0, 18*8);
-  (*tft).print("Press select to return to start");
+void printDeath(unsigned long points) {
+  tft.setCursor(0,10*8);
+  tft.setTextSize(1);
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+  tft.setTextSize(2);
+  tft.print("YOU DIED");
+  tft.setCursor(0, 12*8);
+  tft.setTextSize(1);
+  tft.print("Your points: ");
+  tft.setCursor(9*8, 12*8);
+  tft.print(points);
+  tft.setCursor(0, 18*8);
+  tft.print("Press select to return to start");
 
 }
 
 //Prints the message to player informing them of their death
-void printWin(Adafruit_ST7735 *tft) {
-  (*tft).setCursor(0,10*8);
-  (*tft).setTextSize(1);
-  (*tft).setTextColor(ST7735_WHITE, ST7735_BLACK);
-  (*tft).print("Level Cleared!");
-  (*tft).setCursor(0, 12*8);
-  (*tft).print("Press select to go to the next level.");
+void printWin() {
+  tft.setCursor(0,10*8);
+  tft.setTextSize(1);
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
+  tft.print("Level Cleared!");
+  tft.setCursor(0, 12*8);
+  tft.print("Press select to go to the next level.");
 }
 
 //sets all array values to 0
@@ -137,20 +138,20 @@ void init_map(uint8_t map[20][16]) {
 // x and y are the tile's coordinates
 
 //Used for all 8x8 rectangle drawing
-void drawTile(Adafruit_ST7735 *tft, uint8_t x, uint8_t y, int color){
-  (*tft).fillRect(x*TILE_WIDTH, y*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, color);
+void drawTile(uint8_t x, uint8_t y, int color){
+  tft.fillRect(x*TILE_WIDTH, y*TILE_HEIGHT, TILE_WIDTH, TILE_HEIGHT, color);
 }
 
 //slightly smaller than tile drawing
-void drawBomb(Adafruit_ST7735 *tft, uint8_t x, uint8_t y) {
-  (*tft).fillRect(x*TILE_WIDTH+1, y*TILE_HEIGHT+1, TILE_WIDTH-2, TILE_HEIGHT-2, BLACK);
+void drawBomb(uint8_t x, uint8_t y) {
+  tft.fillRect(x*TILE_WIDTH+1, y*TILE_HEIGHT+1, TILE_WIDTH-2, TILE_HEIGHT-2, BLACK);
 }
 
 //draws plus sign shaped objects
 //will need to change to show objects block explosions
-void drawExplosion(Adafruit_ST7735 *tft, uint8_t x, uint8_t y, uint8_t explo_size) {
-  (*tft).fillRect(x*TILE_WIDTH-TILE_WIDTH*explo_size, y*TILE_HEIGHT, TILE_WIDTH*(2*explo_size+1), TILE_HEIGHT, EXPLOSION);
-  (*tft).fillRect(x*TILE_WIDTH, y*TILE_HEIGHT-TILE_HEIGHT*explo_size, TILE_WIDTH, TILE_HEIGHT*(2*explo_size+1), EXPLOSION);
+void drawExplosion(uint8_t x, uint8_t y, uint8_t explo_size) {
+  tft.fillRect(x*TILE_WIDTH-TILE_WIDTH*explo_size, y*TILE_HEIGHT, TILE_WIDTH*(2*explo_size+1), TILE_HEIGHT, EXPLOSION);
+  tft.fillRect(x*TILE_WIDTH, y*TILE_HEIGHT-TILE_HEIGHT*explo_size, TILE_WIDTH, TILE_HEIGHT*(2*explo_size+1), EXPLOSION);
 }
 
 uint8_t treeTile[8][8] = {
@@ -165,28 +166,28 @@ uint8_t treeTile[8][8] = {
 };
 
 //draws a light green background and a triangle over top
-void drawTree(Adafruit_ST7735 *tft, uint8_t treeTile[8][8], uint8_t x, uint8_t y){
-  // drawTile(tft, x, y, GREEN);
+void drawTree(uint8_t treeTile[8][8], uint8_t x, uint8_t y){
+  // drawTile(x, y, GREEN);
   // //vertecs coordinates then color
-  // (*tft).fillTriangle(x*TILE_WIDTH + TILE_WIDTH, y*TILE_HEIGHT + TILE_HEIGHT, x*TILE_WIDTH-1, y*TILE_HEIGHT + TILE_HEIGHT, x*TILE_WIDTH + TILE_WIDTH/2, y*TILE_HEIGHT, color);
+  // tft.fillTriangle(x*TILE_WIDTH + TILE_WIDTH, y*TILE_HEIGHT + TILE_HEIGHT, x*TILE_WIDTH-1, y*TILE_HEIGHT + TILE_HEIGHT, x*TILE_WIDTH + TILE_WIDTH/2, y*TILE_HEIGHT, color);
   for (int i = 0; i < 8; i++) {
     for (int j= 0; j < 8; j++) {
       if (treeTile[i][j] == 1) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(59, 139, 59));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(59, 139, 59));
       }
       else if (treeTile[i][j] == 2) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(7, 49, 32));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(7, 49, 32));
       }
       else if (treeTile[i][j] == 3) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(27, 18, 1));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(27, 18, 1));
       }
     }
   }
 }
 
 //draws a circle
-void drawCircle(Adafruit_ST7735 *tft, uint8_t x, uint8_t y, int color){
-  (*tft).fillCircle(x*TILE_WIDTH + TILE_WIDTH/2-1, y*TILE_HEIGHT + TILE_HEIGHT/2-1, 3, color);
+void drawCircle(uint8_t x, uint8_t y, int color){
+  tft.fillCircle(x*TILE_WIDTH + TILE_WIDTH/2-1, y*TILE_HEIGHT + TILE_HEIGHT/2-1, 3, color);
 }
 
 // draw a grass tile
@@ -202,14 +203,14 @@ uint8_t grassTile[8][8] = {
 {1,1,1,1,1,1,1,1},
 };
 
-void drawGrass(Adafruit_ST7735 *tft, uint8_t grassTile[8][8], uint8_t x, uint8_t y) {
+void drawGrass(uint8_t grassTile[8][8], uint8_t x, uint8_t y) {
   for (int i = 0; i < 8; i++) {
     for (int j= 0; j < 8; j++) {
       if (grassTile[i][j] == 1) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(59, 139, 59));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(59, 139, 59));
       }
       else if (grassTile[i][j] == 2) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(185,197,60));//210, 185, 84));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(185,197,60));//210, 185, 84));
       }
     }
   }
@@ -227,14 +228,14 @@ uint8_t deadTreeTile[8][8] = {
 {1,1,1,1,1,1,1,1},
 };
 
-void drawDeadTree(Adafruit_ST7735 *tft, uint8_t deadTreeTile[8][8], uint8_t x, uint8_t y) {
+void drawDeadTree(uint8_t deadTreeTile[8][8], uint8_t x, uint8_t y) {
   for (int i = 0; i < 8; i++) {
     for (int j= 0; j < 8; j++) {
       if (deadTreeTile[i][j] == 1) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(59, 139, 59));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(59, 139, 59));
       }
       else if (deadTreeTile[i][j] == 2) {
-        (*tft).drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, (*tft).Color565(71, 57, 31));
+        tft.drawPixel(x*TILE_WIDTH+i, y*TILE_HEIGHT+j, tft.Color565(71, 57, 31));
       }
     }
   }
@@ -252,17 +253,17 @@ uint8_t stoneTile[8][8] = {
 {1,1,1,2,1,2,1,1},
 };
 
-void drawStone(Adafruit_ST7735 *tft, uint8_t stoneTile[8][8], uint8_t x, uint8_t y) {
+void drawStone(uint8_t stoneTile[8][8], uint8_t x, uint8_t y) {
   for (int i = 0; i < 8; i++) {
     for (int j= 0; j < 8; j++) {
       if (stoneTile[i][j] == 1) {
-        (*tft).drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, (*tft).Color565(172, 176, 170));
+        tft.drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, tft.Color565(172, 176, 170));
       }
       else if (stoneTile[i][j] == 2) {
-        (*tft).drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, (*tft).Color565(128, 117, 110));
+        tft.drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, tft.Color565(128, 117, 110));
       }
       else if (stoneTile[i][j] == 3) {
-        (*tft).drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, (*tft).Color565(59, 139, 59));
+        tft.drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, tft.Color565(59, 139, 59));
       }
     }
   }
@@ -279,42 +280,42 @@ uint8_t waterTile[8][8] = {
   {1,1,1,1,1,1,1,1},
 };
 
-void drawWater(Adafruit_ST7735 *tft, uint8_t waterTile[8][8], uint8_t x, uint8_t y) {
+void drawWater(uint8_t waterTile[8][8], uint8_t x, uint8_t y) {
   for (int i = 0; i < 8; i++) {
     for (int j= 0; j < 8; j++) {
       if (waterTile[i][j] == 1) {
-        (*tft).drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, (*tft).Color565(27, 125, 171));
+        tft.drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, tft.Color565(27, 125, 171));
       }
       else if (waterTile[i][j] == 2) {
-        (*tft).drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, (*tft).Color565(29, 61, 88));
+        tft.drawPixel(x*TILE_WIDTH+j, y*TILE_HEIGHT+i, tft.Color565(29, 61, 88));
       }
     }
   }
 }
 
 //converts map position and number into a colored tile on the screen
-void drawTile(Adafruit_ST7735 *tft, uint8_t map1[20][16], uint8_t x, uint8_t y) {
+void drawTile(uint8_t map1[20][16], uint8_t x, uint8_t y) {
   // Serial.println(map1[y][x]);
-  if (map1[y][x] == 0) {
-    // drawTile(tft, x, y, GREEN);
-    drawGrass(tft, grassTile, x, y);
+  if (map1[y][x] % 10 == 0) {
+    // drawTile(x, y, GREEN);
+    drawGrass(grassTile, x, y);
   }
-  else if (map1[y][x] == 1) {
-    drawDeadTree(tft, deadTreeTile, x, y);
+  else if (map1[y][x] % 10 == 1) {
+    drawDeadTree(deadTreeTile, x, y);
   }
-  else if (map1[y][x] == 2) {
-    // drawTile(tft, x, y, BLUE);
-    drawWater(tft, waterTile, x, y);
+  else if (map1[y][x] % 10 == 2) {
+    // drawTile(x, y, BLUE);
+    drawWater(waterTile, x, y);
   }
-  else if (map1[y][x] == 3 || map1[y][x] == 5) {
-    drawTree(tft, treeTile, x, y);
+  else if (map1[y][x] % 10 == 3 || map1[y][x] % 10 == 5) {
+    drawTree(treeTile, x, y);
   }
-  else if (map1[y][x] == 4) {
-    drawTile(tft, x, y, STONE);
+  else if (map1[y][x] % 10 == 4) {
+    drawTile(x, y, STONE);
   }
 
-  else if (map1[y][x] == 6) {
-    drawTile(tft, x, y, WHITE);
+  else if (map1[y][x] % 10 == 6) {
+    drawTile(x, y, WHITE);
   }
 }
 
@@ -338,12 +339,12 @@ void addSemiRandomBlocks(uint8_t map[20][16], uint8_t type){
 }
 
 // Draw an entire map
-void loadMap(Adafruit_ST7735 *tft, uint8_t map[20][16]) {
+void loadMap(uint8_t map[20][16]) {
   uint8_t x;
   uint8_t y;
   for (y = 0; y < MAP_HEIGHT; y++) {
     for (x = 0; x < MAP_WIDTH; x++) {
-      drawTile(tft, map, x, y);
+      drawTile(map, x, y);
     }
   }
 }
@@ -356,10 +357,10 @@ void removeTree(uint8_t map[20][16], uint8_t y, uint8_t x, uint8_t num) {
 //checks for trees in the explosion
 void removeTrees(uint8_t map[20][16], uint8_t x, uint8_t y, uint8_t explo_size) {
   for (uint8_t i = 1; i <= explo_size; i++) {
-    if (map[y][x+i] == 3 && x <= (15-i)){
+    if (map[y][x+i] % 10 == 3 && x <= (15-i)){
       removeTree(map, y,x+i, 1);
     }
-    else if (map[y][x+i] == 5 && x <= (15-i)){
+    else if (map[y][x+i] % 10 == 5 && x <= (15-i)){
       removeTree(map, y,x+i, 6);
     }
 

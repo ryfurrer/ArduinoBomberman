@@ -2,8 +2,7 @@
 #define  _enemy_func_
 
 struct enemy {
-  uint8_t x;
-  uint8_t y;
+  int yx;
   uint8_t dir;
   unsigned long timeOfLastMove;
   unsigned long timeToNextMove;
@@ -12,7 +11,9 @@ struct enemy {
   enemy();
   void setXY(uint8_t x, uint8_t y);
   void setStatus(bool tf);
+  int getX();
+  int getY();
+  int getYXandStat();
   void changeDirection();
-  bool isTouching(uint8_t x, uint8_t y);
 };
 #endif

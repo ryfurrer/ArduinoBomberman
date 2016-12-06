@@ -5,6 +5,7 @@
 #include <mapAndDraw.h>
 #include <enemyStruct.h>
 #include <enemies.h>
+// #include <EEPROM.h>
 
 // standard U of A library settings, assuming Atmel Mega SPI pins
 #define SD_CS    5  // Chip select line for SD card
@@ -38,7 +39,7 @@ const uint8_t explosionDuration = 250; // how long an explosion lasts for
 
 // For point calculations
 unsigned long startTime = 0;
-unsigned long totalPoints = 0;
+unsigned int totalPoints = 0;
 unsigned long enemiesKilled = 0;
 
 // bombs
@@ -102,6 +103,13 @@ void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime);
 
 // General functions
 
+// check if player is touching any enemy
+bool touchingAnyEnemy(uint8_t playerX, uint8_t playerY) {
+  if(map1[playerY][playerX] > 9){
+    return true;
+  }
+  return false;
+}
 
 void updateBombs() {
   unsigned long currentTime;
@@ -113,9 +121,7 @@ void updateBombs() {
       // check if the bombs are going to explode
       if ((currentTime - activeBombs[i].time) > explodeTime) {
         Serial.print("Bomb "); Serial.print(i); Serial.println(" exploding.");
-        Serial.print("currentTime: "); Serial.println(currentTime);
-        Serial.print("Bomb set at time "); Serial.println(activeBombs[i].time);
-        Serial.print("time difference: "); Serial.println(currentTime - activeBombs[i].time);
+        Serial.print("Time since set: "); Serial.println(currentTime - activeBombs[i].time);
         // explode the bomb at its current position
         bombExplode(activeBombs[i].x, activeBombs[i].y);
         // set the bomb's condition to exploding, and store its time of Explosion
@@ -124,7 +130,7 @@ void updateBombs() {
       }
       // if not going to explode, draw the bomb at that location
       else {
-        drawBomb(&tft, activeBombs[i].x, activeBombs[i].y);
+        drawBomb(activeBombs[i].x, activeBombs[i].y);
       }
     }
     // if the bomb is exploding
@@ -138,12 +144,9 @@ void updateBombs() {
         removeExplosion(activeBombs[i].x, activeBombs[i].y);
       }
       else {
-        drawExplosion(&tft, activeBombs[i].x, activeBombs[i].y, explo_size);
-        killEnemies(theEnemies, maxEnemies, activeBombs[i].x, activeBombs[i].y, &numEn, explo_size);
-        if (explodePlayer(playerPosX, playerPosY, activeBombs[i].x, activeBombs[i].y)){
-          Serial.println("Exploding Player");
-          break;
-        }
+        drawExplosion(activeBombs[i].x, activeBombs[i].y, explo_size);
+        killEnemies(map1, theEnemies, maxEnemies, activeBombs[i].x, activeBombs[i].y, &numEn, explo_size);
+        explodePlayer(playerPosX, playerPosY, activeBombs[i].x, activeBombs[i].y);
       }
     }
   }
@@ -151,13 +154,13 @@ void updateBombs() {
 
 // Move the player around the screen
 void updatePlayer() {
-  drawTile(&tft, map1, oldPlayerPosX, oldPlayerPosY);
+  drawTile(map1, oldPlayerPosX, oldPlayerPosY);
   playerMove();
 }
 
 //
 void bombExplode(int x, int y) {
-  drawTile(&tft, map1, x, y);
+  drawTile(map1, x, y);
   bombCount--;
   Serial.print("bombCount: "); Serial.println(bombCount);
 }
@@ -165,10 +168,10 @@ void bombExplode(int x, int y) {
 // Redraws the map over an explosion
 void removeExplosion(int x, int y) {
   for (int i = x - explo_size; i < x+(2*explo_size); i++) {
-    drawTile(&tft, map1, i, y);
+    drawTile(map1, i, y);
   }
   for (int i = y-explo_size; i < y+(explo_size*2); i++) {
-    drawTile(&tft, map1, x, i);
+    drawTile(map1, x, i);
   }
 }
 
@@ -177,6 +180,7 @@ void removeExplosion(int x, int y) {
 
 // Call this when the player dies.
 void gameEnded() {
+
   for (int i = 0; i < maxBombCount; i++) {
     activeBombs[i].exploding = false;
     activeBombs[i].active = false;
@@ -220,7 +224,7 @@ bool getPlayerInput() {
     else if (horiz < JOY_CENTRE) {
       temp = constrain(playerPosX - 1, 0, 15);
     }
-    if (map1[playerPosY][temp] == 0 || map1[playerPosY][temp] == 1 || map1[playerPosY][temp] == 6) {       //constrain movement to ground
+    if (map1[playerPosY][temp] % 10 == 0 || map1[playerPosY][temp] % 10 == 1 || map1[playerPosY][temp] % 10 == 6) {       //constrain movement to ground
       playerPosX = temp;
       return true; // return so that they can't go diagonal
     }
@@ -235,7 +239,7 @@ bool getPlayerInput() {
       temp = constrain(playerPosY - 1, 0, 19);
     }
 
-    if (map1[temp][playerPosX] == 0 || map1[temp][playerPosX] == 1 || map1[temp][playerPosX] == 6) {       //constrain movement to ground
+    if (map1[temp][playerPosX] % 10 == 0 || map1[temp][playerPosX] % 10 == 1 || map1[temp][playerPosX] % 10 == 6) {       //constrain movement to ground
       playerPosY = temp;
       return true;
     }
@@ -260,17 +264,79 @@ void setBomb(int x, int y) {
 }
 
 void playerMove() {
-  drawTile(&tft, playerPosX, playerPosY, RED);
+  drawTile(playerPosX, playerPosY, RED);
   oldPlayerPosX = playerPosX;
   oldPlayerPosY = playerPosY;
 }
 //
 
+void test() {
+  createEnemies(theEnemies, 10, map1);
+  for (int i = 0; i < 5; i++) {
+    theEnemies[i].setXY(i,i);
+  }
+
+  if (binarySearch(theEnemies, 2,2, 5) == 2) {
+    // Serial.println("Good!");
+  } else {
+    Serial.println("ERROR! binarySearch");
+  }
+  if (binarySearch(theEnemies, 2,3, 5) == -1) {
+    // Serial.println("Good!");
+  } else {
+    Serial.println("ERROR! binarySearch");
+  }
+  if (binarySearch(theEnemies, 3, 3, 5) == 3) {
+    // Serial.println("Good!");
+  } else {
+    Serial.println("ERROR! binarySearch");
+  }
+
+  for (int i = 0; i < 5; i++) {
+    theEnemies[i].setXY(i,10-i);
+  }
+
+  Serial.println("Start qsort");
+  qsort(theEnemies, 5);
+  Serial.println("End of qsort");
+
+  if (binarySearch(theEnemies, 0,10, 5) != 4) {
+    Serial.println("ERROR! 0");
+  }
+  if (binarySearch(theEnemies, 2,8, 5) != 2) {
+    Serial.println("ERROR! 2");
+  }
+  if (binarySearch(theEnemies, 4, 6, 5) != 0) {
+    Serial.println("ERROR! 4");
+  }
+
+  theEnemies[1].setStatus(false);
+  theEnemies[3].setStatus(false);
+
+  qsort(theEnemies, 5);
+
+  if (binarySearch(theEnemies, 0,10, 5) != 2) {
+    Serial.println("ERROR! 0");
+    Serial.println(binarySearch(theEnemies, 0, 10, 5));
+  }
+  if (binarySearch(theEnemies, 2,8, 5) != 1) {
+    Serial.println("ERROR! 2");
+    Serial.println(binarySearch(theEnemies, 2,8, 5));
+  }
+  if (binarySearch(theEnemies, 4, 6, 5) != 0) {
+    Serial.println("ERROR! 4");
+  }
+  for (int i = 0; i < 5; i++) {
+    Serial.println(theEnemies[i].getY());
+  }
+
+  // Serial.println("Good");
+}
 
 void setup() {
   init();
   Serial.begin(9600);
-  setupTFT(&tft);
+  setupTFT();
 
   // Init joystick
   pinMode(JOY_SEL, INPUT);
@@ -280,6 +346,12 @@ void setup() {
 
 int main() {
   setup();
+  // delay(100);
+  // test();
+  //
+  // while (true) {
+  //   /* code */
+  // }
   enum State {start, htp, init_game, game, end}; // htp = how to play
   State state = start;
   enum Levels {newLevel, retry};
@@ -293,10 +365,10 @@ int main() {
     if (state == start) {
       tft.fillScreen(BLACK);
       tft.setTextColor(ST7735_BLACK, WHITE);    //Show tile scren
-      printStartItem(&tft, 0);
+      printStartItem(0);
       tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
-      printStartItem(&tft, -1);
-      printStartItem(&tft, 1);
+      printStartItem(-1);
+      printStartItem(1);
 
       int vert;
       while(state == start) {               //handles screen selection
@@ -315,7 +387,7 @@ int main() {
     }
     else if (state == htp)
     {
-      printInstructions(&tft);
+      printInstructions();
       while (state == htp) {
         if (digitalRead(JOY_SEL) == 0) {
           state = start;
@@ -347,10 +419,10 @@ int main() {
       }
 
       numEn = maxEnemies;
-      loadMap(&tft, map1);
+      loadMap(map1);
       Serial.println("Map loaded");
       createEnemies(theEnemies, maxEnemies, map1);
-      drawEnemy(theEnemies, maxEnemies, &tft);
+      drawEnemy(theEnemies, maxEnemies);
       updatePlayer();
       startTime = millis();
       state = game;
@@ -365,16 +437,17 @@ int main() {
         updatePlayer();
       }
 
-      moveAllEnemies(map1, theEnemies, &tft, maxEnemies);
-      if(touchingAnyEnemy(theEnemies, playerPosX, playerPosY, maxEnemies)){
+      moveAllEnemies(map1, theEnemies, maxEnemies);
+      if(touchingAnyEnemy(playerPosX, playerPosY)){
         isAlive = false;
       }
 
       if (!isAlive) {
         gameEnded();
+        killAllEnemies(map1, theEnemies, maxEnemies);
         enemiesKilled = maxEnemies-numEn;
         calculatePoints(enemiesKilled, millis() - startTime);
-        printDeath(&tft, totalPoints);
+        printDeath(totalPoints);
         Serial.println(totalPoints);
         totalPoints = 0;
         level = retry;
@@ -384,7 +457,7 @@ int main() {
 
       if (numEn == 0) {
         gameEnded();
-        printWin(&tft);
+        printWin();
         calculatePoints(maxEnemies, millis() - startTime);
         level = newLevel;
         state = end;
@@ -417,7 +490,7 @@ int main() {
 }
 
 void checkPowerUps(){
-  if (map1[playerPosY][playerPosX] == 6) {
+  if (map1[playerPosY][playerPosX] % 10 == 6) {
     map1[playerPosY][playerPosX] = 0;
     explo_size++;
   }
@@ -426,10 +499,10 @@ void checkPowerUps(){
 void changeHighlightedItem(){
   //overwrite old selection
   (tft).setTextColor(ST7735_WHITE, ST7735_BLACK);
-  printStartItem(&tft, oldSelection);
+  printStartItem(oldSelection);
   //highlight new selection
   (tft).setTextColor(ST7735_BLACK, ST7735_WHITE);
-  printStartItem(&tft, selection);
+  printStartItem(selection);
   oldSelection = selection;
 }
 
@@ -458,3 +531,14 @@ void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime) {
   totalPoints += ((unsigned long) enemiesKilled * 200 * 1000) / clearTime;
   Serial.print("Total Points: "); Serial.println(totalPoints);
 }
+
+// void readEEPROM(){
+//   for (int i = 0; i < EEPROM.length(); ++i) {
+//     int c = EEPROM.read();
+//     if (!isprint(c))
+//       break;
+//   }
+// }
+//
+// void storeScore(int score) {
+// }

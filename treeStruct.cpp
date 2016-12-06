@@ -7,7 +7,7 @@ tree::tree() {
   xy = 0;
 }
 
-//only use nubers x:0-15, y:4-19
+//only use numbers x:0-15, y:4-19
 void tree::setXY(int x, int y) {
   y = y - 4;
   y = y << 4;

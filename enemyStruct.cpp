@@ -1,8 +1,7 @@
 #include <Arduino.h>
 #include <enemyStruct.h>
 
-uint8_t x;
-uint8_t y;
+int yx;
 uint8_t dir;
 bool active;
 unsigned long timeOfLastMove;
@@ -11,21 +10,29 @@ uint8_t spacesToMove;
 
 enemy::enemy(){
   dir = 0;//0 left, 1 right, 2 up, 3 down
-  x = 1;
-  y = 0;
+  yx = 1;
   active = false;
 }
 
 void enemy::setXY(uint8_t x, uint8_t y){
-  this->x = x;
-  this->y = y;
+  yx = ( y<< 4) + x;
 }
 
-bool enemy::isTouching(uint8_t playerX, uint8_t playerY) {
-  if (playerX == x && playerY == y && active) {
-    return true;
+int enemy::getX() {
+  int t = (yx&(15));
+  return t;
+}
+
+int enemy::getY() {
+  int t = yx >> 4;
+  return t;
+}
+
+int enemy::getYXandStat() {
+  if (!active) {
+    return (yx+(1<<12));
   }
-  return false;
+  return yx;
 }
 
 void enemy::setStatus(bool tf) {

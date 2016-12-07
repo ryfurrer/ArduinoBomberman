@@ -168,7 +168,7 @@ int partition(enemy theEnemies[15], int len, int pivot_idx) {
     swap_enemies(&theEnemies[upper], &theEnemies[len-1]);
     pivot_idx = upper;
   }
-  else {      //I don't understand this
+  else {
     pivot_idx = len-1;
   }
   return pivot_idx;
@@ -219,7 +219,7 @@ int binarySearch(enemy theEnemies[15], uint8_t x, uint8_t y, uint8_t numEn){
   //ie: logic ERROR
 }
 
-//O(numEn*log(numEn)) + O(explo_size*log(numEn))
+//O(numEn+explo_size)*log(numEn))
 void killEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t maxEnemies, uint8_t x, uint8_t y, uint8_t* numEn, uint8_t explo_size) {
   Serial.println("Top of killEnemies");
   qsort(theEnemies, maxEnemies);

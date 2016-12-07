@@ -1,6 +1,6 @@
 /*
-Tim Tran
 Ryan Furrer
+Tim Tran
 CMPUT 274 EA1
 */
 

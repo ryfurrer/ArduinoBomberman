@@ -1,3 +1,9 @@
+/*
+Tim Tran
+Ryan Furrer
+CMPUT 274 EA1
+*/
+
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h> // hardware-specific library

@@ -21,18 +21,19 @@ void drawEnemy(enemy theEnemies[15], uint8_t numEn) {
 }
 
 void changeDirection(enemy *bob) {
-  uint8_t i;
+  uint8_t i, t = 0;
   // keeps looping until bob gets a different direction than his current one
   do {
     i = random(4);
-  } while(bob->dir == i);
+    t++;
+  } while(bob->dir == i && t <= 4);
   // set bob's direction to the new one
   bob->dir = i;
 }
 
 
 // move an enemy randomly
-void moveEnemy(uint8_t map[20][16], enemy *bob) {
+void moveEnemy(uint8_t map[20][16], enemy *bob, uint8_t recursions) {
   // x and y are the tentative coordinates for bob to move to.
   uint8_t x = bob->getX();
   uint8_t y = bob->getY();
@@ -58,9 +59,10 @@ void moveEnemy(uint8_t map[20][16], enemy *bob) {
     map[bob->getY()][bob->getX()] -= 10;
     bob->setXY(x,y);
     map[bob->getY()][bob->getX()] += 10;
-  } else {
+  } else if(recursions < 6){
+    recursions++;
     changeDirection(bob);
-    moveEnemy(map,bob);
+    moveEnemy(map, bob, recursions);
   }
 }
 
@@ -89,14 +91,14 @@ void moveAllEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t numEn) {
       // Also, set the amount of spaces he will move when he moves again
       // and give him a new direction to move in.
       else if (theEnemies[i].spacesToMove <= 0) {
-        theEnemies[i].timeToNextMove = random(2000,5000);
-        theEnemies[i].spacesToMove = random(1,6);
+        theEnemies[i].timeToNextMove = random(2000,4000);
+        theEnemies[i].spacesToMove = random(1,5);
         // changeDirection(&(theEnemies[i]));
       }
       // Draw over his old position
       drawTile(map, theEnemies[i].getX(), theEnemies[i].getY());
       // Get his new coordinates to move to.
-      moveEnemy(map, &(theEnemies[i]));
+      moveEnemy(map, &(theEnemies[i]), 0);
     }
   }
   // Move the enemy to his new location.
@@ -162,7 +164,9 @@ int partition(enemy theEnemies[15], int len, int pivot_idx) {
     else {
       swap_enemies(&theEnemies[lower], &theEnemies[upper]);
     }
-  }
+  }// theEnemies[upper] will be the first value greater than the pivot as long as
+  //the pivot isn't the highest value after leaving this loop
+
   // if statement to check if the index is the highest value
   if (theEnemies[len-1].getYXandStat() < theEnemies[upper].getYXandStat()) {
     swap_enemies(&theEnemies[upper], &theEnemies[len-1]);
@@ -219,9 +223,11 @@ int binarySearch(enemy theEnemies[15], uint8_t x, uint8_t y, uint8_t numEn){
   //ie: logic ERROR
 }
 
-//O(numEn+explo_size)*log(numEn))
+/*
+  Removes enmies that are in explosions
+  O(numEn+explo_size)*log(numEn))
+*/
 void killEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t maxEnemies, uint8_t x, uint8_t y, uint8_t* numEn, uint8_t explo_size) {
-  Serial.println("Top of killEnemies");
   qsort(theEnemies, maxEnemies);
 
   if (map[y][x] > 9){
@@ -239,7 +245,7 @@ void killEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t maxEnemies, 
       while (map[y][x+i] > 9){
         int t = binarySearch(theEnemies, x+i, y, *numEn);
         if (t == -1) {
-          Serial.println("left Error: binary search = -1");
+          Serial.println("left Error: binary search = -1");//loops infinitly if true
         } else {
           theEnemies[t].setStatus(false);
           (*numEn)--;
@@ -291,5 +297,4 @@ void killEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t maxEnemies, 
       }
     }
   }
-  Serial.println("End of killEnemies");
 }

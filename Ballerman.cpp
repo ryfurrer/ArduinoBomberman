@@ -5,7 +5,6 @@
 #include <mapAndDraw.h>
 #include <enemyStruct.h>
 #include <enemies.h>
-// #include <EEPROM.h>
 
 // standard U of A library settings, assuming Atmel Mega SPI pins
 #define SD_CS    5  // Chip select line for SD card
@@ -100,6 +99,7 @@ void gameEnded();
 bool explodePlayer(int playerPosX, int playerPosY, int explosionPosX, int explosionPosY);
 void checkPowerUps();
 void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime);
+bool touchingAnyEnemy(uint8_t playerX, uint8_t playerY);
 
 // General functions
 
@@ -167,10 +167,10 @@ void bombExplode(int x, int y) {
 
 // Redraws the map over an explosion
 void removeExplosion(int x, int y) {
-  for (int i = x - explo_size; i < x+(2*explo_size); i++) {
+  for (int i = x - explo_size; i <= x+(explo_size); i++) {
     drawTile(map1, i, y);
   }
-  for (int i = y-explo_size; i < y+(explo_size*2); i++) {
+  for (int i = y-explo_size; i <= y+(explo_size); i++) {
     drawTile(map1, x, i);
   }
 }
@@ -250,7 +250,7 @@ bool getPlayerInput() {
 
 void setBomb(int x, int y) {
   bombCount++;
-  Serial.print("bombCount: "); Serial.println(bombCount);
+  // Serial.print("bombCount: "); Serial.println(bombCount);
   for (int i = 0; i < maxBombCount; i++) {
     if (activeBombs[i].active == false) {
       Serial.print("Bomb "); Serial.print(i); Serial.println(" is active.");
@@ -270,6 +270,9 @@ void playerMove() {
 }
 //
 
+/*
+  Tests if qsort and binarySearch are working as expected.
+*/
 void test() {
   createEnemies(theEnemies, 10, map1);
   for (int i = 0; i < 5; i++) {
@@ -277,17 +280,14 @@ void test() {
   }
 
   if (binarySearch(theEnemies, 2,2, 5) == 2) {
-    // Serial.println("Good!");
   } else {
     Serial.println("ERROR! binarySearch");
   }
   if (binarySearch(theEnemies, 2,3, 5) == -1) {
-    // Serial.println("Good!");
   } else {
     Serial.println("ERROR! binarySearch");
   }
   if (binarySearch(theEnemies, 3, 3, 5) == 3) {
-    // Serial.println("Good!");
   } else {
     Serial.println("ERROR! binarySearch");
   }
@@ -346,12 +346,7 @@ void setup() {
 
 int main() {
   setup();
-  // delay(100);
-  // test();
-  //
-  // while (true) {
-  //   /* code */
-  // }
+
   enum State {start, htp, init_game, game, end}; // htp = how to play
   State state = start;
   enum Levels {newLevel, retry};
@@ -448,7 +443,6 @@ int main() {
         enemiesKilled = maxEnemies-numEn;
         calculatePoints(enemiesKilled, millis() - startTime);
         printDeath(totalPoints);
-        Serial.println(totalPoints);
         totalPoints = 0;
         level = retry;
         state = end;
@@ -468,7 +462,7 @@ int main() {
       // If the the amount of time passed since before the screen updated til now
       // is less than milliseconds per frame, delay until that MILLIS_PER_FRAME
       // has passed. i.e wait until the frame finishes before updating again.
-      if (t - prevTime < MILLIS_PER_FRAME) {
+      if (t - prevTime < MILLIS_PER_FRAME) {//code runs fast enough that this is always true
         delay(MILLIS_PER_FRAME - (t - prevTime));
       }
       prevTime = millis();
@@ -531,14 +525,3 @@ void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime) {
   totalPoints += ((unsigned long) enemiesKilled * 200 * 1000) / clearTime;
   Serial.print("Total Points: "); Serial.println(totalPoints);
 }
-
-// void readEEPROM(){
-//   for (int i = 0; i < EEPROM.length(); ++i) {
-//     int c = EEPROM.read();
-//     if (!isprint(c))
-//       break;
-//   }
-// }
-//
-// void storeScore(int score) {
-// }

@@ -295,7 +295,6 @@ void drawWater(uint8_t waterTile[8][8], uint8_t x, uint8_t y) {
 
 //converts map position and number into a colored tile on the screen
 void drawTile(uint8_t map1[20][16], uint8_t x, uint8_t y) {
-  // Serial.println(map1[y][x]);
   if (map1[y][x] % 10 == 0) {
     // drawTile(x, y, GREEN);
     drawGrass(grassTile, x, y);

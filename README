@@ -32,3 +32,20 @@ BB GND Bus <---> Arduino GND
 
 Run instructions:
 It is to be compiled and uploaded from command line by typing "make upload".
+
+How to play:
+Use the joystick to navigate.
+Pressing in the joystick is referred to as pressing the select button in the game.
+
+Bomberman is a maze-based video game where the player tries to destroy all the enemies and then find the exit.
+In our version you will try to kill all the enemies on the map until they are all dead and a you move on to the next level or you die.
+New levels increase in the number of enemies.
+The player can place bombs onto the map by pressing the joystick select button. The amount of bombs the player can place is limited.
+After a set period of time a set bomb will explode with a “plus-shaped” radius, killing anything that happens to be within its explosion radius.
+Bombs can destroy trees and enemies.
+Some trees may contain powerups.
+
+General code layout:
+Ballerman.cpp:  anything to do with the player or game logic
+Enemies.cpp:    anything to with the enemies except player/enemy collison
+mapAndDraw.cpp: anything that uses the lcd screen or is used to make the map

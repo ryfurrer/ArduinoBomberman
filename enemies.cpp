@@ -137,11 +137,6 @@ void killAllEnemies(uint8_t map[20][16], enemy theEnemies[15], uint8_t numEn) {
   }
 }
 
-//O(nlog(n))
-// void qsort(enemy theEnemies[15]) {
-//
-// }
-
 // Swap two enemies of enemy struct
 void swap_enemies(enemy *ptr_enemy1, enemy *ptr_enemy2) {
   enemy tmp = *ptr_enemy1;

@@ -92,20 +92,24 @@ uint8_t explo_size = 1;         //make power up to increase radius
 
 
 
+void setup();
+void menuScroll(int vert);
+void changeHighlightedItem();
+
+bool touchingAnyEnemy(uint8_t playerX, uint8_t playerY);
 bool getPlayerInput();
 void playerMove();
-void setup();
+void updatePlayer();
+
 void bombExplode(int x, int y);
 void setBomb(int x, int y);
 void updateBombs();
 void removeExplosion(int x, int y);
-void menuScroll(int vert);
-void changeHighlightedItem();
-void gameEnded();
 bool explodePlayer(int playerPosX, int playerPosY, int explosionPosX, int explosionPosY);
+
 void checkPowerUps();
 void calculatePoints (unsigned long enemiesKilled, unsigned long clearTime);
-bool touchingAnyEnemy(uint8_t playerX, uint8_t playerY);
+void gameEnded();
 
 // General functions
 
